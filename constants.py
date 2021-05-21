@@ -1,0 +1,1 @@
+nonBreakSpace = u'\xa0'

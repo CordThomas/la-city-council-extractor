@@ -1,0 +1,14 @@
+delete from council_file where cf_number like '10-%';
+
+delete from votes;
+
+delete from vote_results;
+
+select * from council_file where cf_number = '11-1805'
+
+
+delete from council_file where cf_number like '18-0721';
+
+delete from votes where cf_number like '18-0721';
+
+delete from vote_results where cf_number like '18-0721';;
