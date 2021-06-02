@@ -30,8 +30,8 @@ def process_cf_records(conn, cf_url_base, cf_item_pattern):
     :param cf_item_pattern:  The year-file pattern compiled in this method to complete the URL
     """
     meta_words = []
-    for year in range(10, 22):
-        for cf in range(1800):
+    for year in range(10, 11):
+        for cf in range(1800, 2000):
             cf_number = cf_item_pattern.format(year=str(year), item=str(cf).zfill(4))
             cf_url = cf_url_base + cf_number
             print(cf_url)

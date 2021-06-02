@@ -2,3 +2,4 @@ data/city-council.db
 .idea
 .DS_Store
 __pycache__
+*.xlsx
