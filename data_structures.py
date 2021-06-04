@@ -13,6 +13,7 @@ cf_fields = {
     'Pending in Committee': 'pending_committee',
     'Reference Numbers': 'reference_recs',
     'Second': 'second',
+    'Subject': 'subject',
     'Title': 'title',
     'Reward Amount': 'reward_amount',
     'Reward Duration': 'reward_duration',

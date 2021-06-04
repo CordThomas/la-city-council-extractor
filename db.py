@@ -14,6 +14,8 @@ def clean_field_for_database(db_field, rectext):
 
     if 'date' in db_field:
         rectext = rectext[6:10] + '-' + rectext[0:2] + '-' + rectext[3:5]
+    elif 'subject' in db_field:
+        rectext = rectext[0:999]
     return rectext
 
 def create_connection(db_file):

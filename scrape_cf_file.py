@@ -14,7 +14,7 @@ def done_processing_sections(section):
     :return: True if we're at the stopping point, otherwise False
     """
     for element in section:
-        if element.string == 'File Activities':
+        if element.string == 'File Activities' or element.string == 'File History':
             return True
     return False
 
@@ -91,8 +91,8 @@ def parse_section(db_conn, cf_number, section, meta_words):
             if len(reclabel) > 0 and len(rectext) > 0:
                 # if reclabel not in meta_words:
                 #     meta_words.append(reclabel)
-                if 'Date' in reclabel:
-                    process_record(db_conn, cf_number, reclabel, rectext)
+                # if 'Date' in reclabel:
+                process_record(db_conn, cf_number, reclabel, rectext)
                 reclabel = ''
                 rectext = ''
 
@@ -105,8 +105,18 @@ def process_cf_council_file(soup, meta_words, db_conn, cf_number):
     :param meta_words:  The list used to track all the possible field names; should
     be part of a separate method or even preprocesing script to create the structure
     of the database table schema.
+    :return missing_sections:  Returns whether the council file page is
+     missing sections (1).   If not, this suggests the page was empty - there
+     are empty pages in the middle of the year, so cannot assume that the first
+     empty page signals the end of the year.
     """
+
+    missing_sections = 1
+
     sections = soup.find_all('div', {'class': 'section'})
+
+    if len(sections) > 0:
+        missing_sections = 0
 
     for section in sections:
         if done_processing_sections(section):
@@ -115,5 +125,4 @@ def process_cf_council_file(soup, meta_words, db_conn, cf_number):
         if len(section) > 1:
             parse_section(db_conn, cf_number, section, meta_words)
 
-
-
+    return missing_sections

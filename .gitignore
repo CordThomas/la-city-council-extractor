@@ -3,3 +3,4 @@ data/city-council.db
 .DS_Store
 __pycache__
 *.xlsx
+*.html

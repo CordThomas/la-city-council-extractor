@@ -1,5 +1,9 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""Scrape the Los Angeles City Council council file and voting history.
+"""
 from bs4 import BeautifulSoup
-import bs4
 import requests
 import urllib3
 
@@ -15,7 +19,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 def process_cf_records(conn, cf_url_base, cf_item_pattern):
     """ Loop over the collection of years of interest (we ran from 2010 to
     2021 inclusive) and the number of council file records (varies considerably
-    from year to year with nearly 2,200 in 2012 (?) to only 1,400 in other years).
+    from year to year with nearly 2,200 in 2012 to only 1,400 in other years).
     Relies on BeautifulSoup to parse the HTML and extract data to insert into
     a SQLite database.
 
@@ -30,9 +34,10 @@ def process_cf_records(conn, cf_url_base, cf_item_pattern):
     :param cf_item_pattern:  The year-file pattern compiled in this method to complete the URL
     """
     meta_words = []
-    for year in range(10, 11):
-        for cf in range(1800, 2000):
-            cf_number = cf_item_pattern.format(year=str(year), item=str(cf).zfill(4))
+    for year in range(7, 8):
+        empty_cf_pages = 0
+        for cf in range(461, 5000):
+            cf_number = cf_item_pattern.format(year=str(year).zfill(2), item=str(cf).zfill(4))
             cf_url = cf_url_base + cf_number
             print(cf_url)
             html_text = requests.get(cf_url, verify=False).text
@@ -41,10 +46,17 @@ def process_cf_records(conn, cf_url_base, cf_item_pattern):
             for linebreak in soup.find_all('br'):
                 linebreak.extract()
 
-            # insert_new_council_file(conn, cf_number)
-            process_cf_council_file(soup, meta_words, conn, cf_number)
-            # process_cf_votes(soup, conn, cf_number)
+            insert_new_council_file(conn, cf_number)
+            empty_cf_page = process_cf_council_file(soup, meta_words, conn, cf_number)
+            if empty_cf_page == 0:
+                empty_cf_pages = 0
+            else:
+                empty_cf_pages += empty_cf_page
+            process_cf_votes(soup, conn, cf_number)
 
+            # If we have found more than 20 consecutive empty pages, break for the year
+            if empty_cf_pages >= 20:
+                break
     # This bit should be pulled out into a separate method - it's part of
     # a pre-stage process to identify all the council file summary labels
     for meta_word in meta_words:
