@@ -1,20 +1,15 @@
 --
--- This script creates the tables used in the extraction of data
--- from the Los Angeles City Clerk's Council File
--- Management System (CFMS).  It will create the tables in an
--- already created database.  To create the database, see
--- https://www.sqlite.org/quickstart.html
+-- File generated with SQLiteStudio v3.2.1 on Fri Jun 4 07:45:33 2021
 --
 -- Text encoding used: UTF-8
 --
-
 PRAGMA foreign_keys = off;
 BEGIN TRANSACTION;
 
--- Table: meta
-DROP TABLE IF EXISTS meta;
+-- Table: council_file
+DROP TABLE IF EXISTS council_file;
 
-CREATE TABLE meta (
+CREATE TABLE council_file (
     cf_number           STRING (10) PRIMARY KEY
                                     UNIQUE
                                     NOT NULL,
@@ -33,7 +28,8 @@ CREATE TABLE meta (
     reward_amount       TEXT (20),
     reward_duration     TEXT (20),
     reward_publish_date TEXT (20),
-    reward_expire_date  TEXT (20) 
+    reward_expire_date  TEXT (20),
+    subject             TEXT (1000) 
 );
 
 
