@@ -1,3 +1,4 @@
+data/backup/
 data/city-council.db
 data/*.db-journal
 .idea
@@ -5,3 +6,5 @@ data/*.db-journal
 __pycache__
 *.xlsx
 *.html
+*.csv
+*.sqbpro
