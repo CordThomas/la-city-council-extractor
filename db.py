@@ -40,10 +40,27 @@ def insert_new_council_file(conn, cf_num):
     :param cf_num:  Council file number, format a zero-padded yy-nnnn
     """
 
-    sql = ''' INSERT INTO council_file(cf_number)
+    sql = ''' INSERT OR IGNORE INTO council_file(cf_number)
               VALUES(?) '''
     cur = conn.cursor()
     cur.execute(sql, (cf_num,))
+    conn.commit()
+
+
+def insert_new_council_action(conn, cf_num, action_date, description):
+    """
+    Insert a council action
+    :param conn: Active database connection
+    :param cf_num: Council file number, format a zero-padded yy-nnnn
+    :param action_date: Date of the action
+    :param description: Description of the action
+    :return: n/a
+    """
+
+    sql = ''' INSERT OR IGNORE INTO council_action(cf_number, action_date, description)
+              VALUES(?, ?, ?) '''
+    cur = conn.cursor()
+    cur.execute(sql, (cf_num, action_date, description))
     conn.commit()
 
 
@@ -89,6 +106,23 @@ def update_council_file_field(conn, cf_num, key, value):
     conn.commit()
 
 
+def delete_vote_records(db_conn, cf_number):
+    """
+    Delete the vote results and vote record for this CF
+    :param db_conn:  Active database connection
+    :param cf_number:  Council file number, format a zero-padded yy-nnnn
+    :return:  None
+    """
+
+    cur = db_conn.cursor()
+    sql = '''DELETE FROM vote_results WHERE cf_number=?;'''
+    cur.execute(sql, (cf_number, ))
+
+    sql = '''DELETE FROM votes WHERE cf_number=?;'''
+    cur.execute(sql, (cf_number, ))
+    db_conn.commit()
+
+
 def insert_vote(conn, cf_num, vote_date, vote_type, vote_action):
     """
     Insert a vote summary record with the date and type of meeting
@@ -120,4 +154,12 @@ def insert_vote_result(conn, cf_num, council_member, council_district, vote):
               VALUES(?, ?, ?, ?) '''
     cur = conn.cursor()
     cur.execute(sql, (cf_num, int(council_district), council_member, vote))
+    conn.commit()
+
+
+def insert_council_distance_entry(conn, council_district_1, council_district_2, distance):
+
+    sql = 'insert into council_distance_matrix values (?, ?, ?)'
+    cur = conn.cursor()
+    cur.execute(sql, (council_district_1, council_district_2, distance))
     conn.commit()

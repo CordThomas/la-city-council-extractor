@@ -26,6 +26,11 @@ This collection of scripts scans the Los Angeles City Council
 File database for all recorded files and extracts information
 about each file into a sqlite database for further analysis.
 
+Specifically, the script extracts summary information about the
+council file and then the votes cast and council actions (
+moves to committee, community impact statements filed by 
+neighborhood councils, voting events and interventions by the mayor).
+
 Eventually this will be automated into a daily routine so that
 the meta data is up to date.   Post processing on the database
 could be used to extract trends on topics of concern, voting
