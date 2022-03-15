@@ -10,6 +10,8 @@ import urllib3
 from scrape_cf_file import *
 from scrape_cf_votes import *
 from scrape_cf_activity import *
+from scrape_cf_documents import *
+
 from db import *
 
 # tell urllib to ignore SSL warnings - another approach would be to
@@ -35,8 +37,8 @@ def process_cf_records(conn, cf_url_base, cf_item_pattern):
     :param cf_item_pattern:  The year-file pattern compiled in this method to complete the URL
     """
     meta_words = []
-    start_at = 354
-    first_range = 19
+    start_at = 969
+    first_range = 12
     for year in range(first_range, 23):
         empty_cf_pages = 0
         for cf in range(5000):
@@ -50,14 +52,15 @@ def process_cf_records(conn, cf_url_base, cf_item_pattern):
                 for linebreak in soup.find_all('br'):
                     linebreak.extract()
 
-                insert_new_council_file(conn, cf_number)
+                # insert_new_council_file(conn, cf_number)
                 empty_cf_page = process_cf_council_file(soup, meta_words, conn, cf_number)
                 if empty_cf_page == 0:
                     empty_cf_pages = 0
                 else:
                     empty_cf_pages += empty_cf_page
-                process_cf_votes(soup, conn, cf_number, True)
-                process_cf_activity(soup, conn, cf_number)
+                # process_cf_votes(soup, conn, cf_number, True)
+                # process_cf_activity(soup, conn, cf_number)
+                process_cf_document(soup, conn, cf_number)
 
                 # If we have found more than 20 consecutive empty pages, break for the year
                 if empty_cf_pages >= 20:
