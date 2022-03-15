@@ -37,7 +37,7 @@ def process_cf_records(conn, cf_url_base, cf_item_pattern):
     :param cf_item_pattern:  The year-file pattern compiled in this method to complete the URL
     """
     meta_words = []
-    start_at = 969
+    start_at = 1169
     first_range = 12
     for year in range(first_range, 23):
         empty_cf_pages = 0
@@ -46,25 +46,40 @@ def process_cf_records(conn, cf_url_base, cf_item_pattern):
                 cf_number = cf_item_pattern.format(year=str(year).zfill(2), item=str(cf).zfill(4))
                 cf_url = cf_url_base + cf_number
                 print(cf_url)
-                html_text = requests.get(cf_url, verify=False).text
-                soup = BeautifulSoup(html_text, 'html.parser')
 
-                for linebreak in soup.find_all('br'):
-                    linebreak.extract()
+                download_success = False
+                attempt_count = 0
 
-                # insert_new_council_file(conn, cf_number)
-                empty_cf_page = process_cf_council_file(soup, meta_words, conn, cf_number)
-                if empty_cf_page == 0:
-                    empty_cf_pages = 0
-                else:
-                    empty_cf_pages += empty_cf_page
-                # process_cf_votes(soup, conn, cf_number, True)
-                # process_cf_activity(soup, conn, cf_number)
-                process_cf_document(soup, conn, cf_number)
+                while not download_success and attempt_count < 5:
 
-                # If we have found more than 20 consecutive empty pages, break for the year
-                if empty_cf_pages >= 20:
-                    break
+                    try:
+                        html_text = requests.get(cf_url, verify=False, timeout=(5, 15)).text
+                        soup = BeautifulSoup(html_text, 'html.parser')
+
+                        for linebreak in soup.find_all('br'):
+                            linebreak.extract()
+
+                        # insert_new_council_file(conn, cf_number)
+                        empty_cf_page = process_cf_council_file(soup, meta_words, conn, cf_number)
+                        if empty_cf_page == 0:
+                            empty_cf_pages = 0
+                        else:
+                            empty_cf_pages += empty_cf_page
+                        # process_cf_votes(soup, conn, cf_number, True)
+                        # process_cf_activity(soup, conn, cf_number)
+                        process_cf_document(soup, conn, cf_number)
+
+                        # If we have found more than 20 consecutive empty pages, break for the year
+                        if empty_cf_pages >= 20:
+                            break
+                    except requests.exceptions.ConnectionError:
+                        print('***** Failed to connect {}'.format(cf_url))
+                    except requests.exceptions.Timeout:
+                        print('***** Timed out {}'.format(cf_url))
+                        attempt_count += 1
+                        time.sleep(5)
+                    except Exception as exc:
+                        print(exc)
 
     # This bit should be pulled out into a separate method - it's part of
     # a pre-stage process to identify all the council file summary labels
