@@ -1,6 +1,7 @@
 data/backup/
 data/city-council.db
 data/*.db-journal
+documents/*
 .idea
 .DS_Store
 __pycache__
