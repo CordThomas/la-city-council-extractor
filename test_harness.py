@@ -13,7 +13,6 @@ def test_delete_votes(db_conn, cf_number):
     delete_vote_records(db_conn, cf_number)
 
 
-
 def test_process_cf_document(db_conn, cf_number):
 
     cf_url = cf_url_base.format(cf_number)
@@ -36,7 +35,7 @@ def test():
 
     db_file = 'data/city-council.db'
     db_conn = create_connection(db_file)
-    test_process_cf_document(db_conn, '22-0158')
+    test_process_cf_document(db_conn, '12-1168')
     # test_process_cf_activity(db_conn, '10-0102')
     # test_delete_votes(db_conn, '20-1700')
     db_conn.close()

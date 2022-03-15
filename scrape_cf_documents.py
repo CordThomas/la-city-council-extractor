@@ -1,23 +1,42 @@
 from db import *
 import requests
 import os
+import time
 from bs4 import BeautifulSoup
 from pathlib import Path
 
 docs_base = './documents/'
 chunk_size = 2048
 
+# https://stackoverflow.com/questions/16511337/correct-way-to-try-except-using-python-requests-module
+
+
 def retrieve_cf_document(cf_number, path):
 
-    r = requests.get(path, stream=True)
+    r = requests.get(path, stream=True, timeout=(5, 15))
 
     cf_year = '20' + cf_number[:2]
-    filename=os.path.basename(path)
-    Path(docs_base + cf_year + '/' + cf_number).mkdir(parents=True, exist_ok=True)
+    file_location = docs_base + cf_year + '/' + cf_number
+    filename = os.path.basename(path)
+    Path(file_location).mkdir(parents=True, exist_ok=True)
 
-    with open(docs_base + cf_year + '/' + cf_number + '/' + filename, 'wb') as fd:
-        for chunk in r.iter_content(chunk_size):
-            fd.write(chunk)
+    download_success = False
+    attempt_count = 0
+
+    while not download_success and attempt_count < 5:
+        try:
+            with open(file_location + '/' + filename, 'wb') as fd:
+                for chunk in r.iter_content(chunk_size):
+                    fd.write(chunk)
+                download_success = True
+        except requests.exceptions.ConnectionError:
+            print('***** Failed to connect {}'.format(path))
+        except requests.exceptions.Timeout:
+            print('***** Timed out {}'.format(path))
+            attempt_count += 1
+            time.sleep(5)
+        except Exception as exc:
+            print(exc)
 
 
 def process_cf_document(soup, conn, cf_number):
