@@ -13,8 +13,6 @@ chunk_size = 2048
 
 def retrieve_cf_document(cf_number, path):
 
-    r = requests.get(path, stream=True, timeout=(5, 15))
-
     cf_year = '20' + cf_number[:2]
     file_location = docs_base + cf_year + '/' + cf_number
     filename = os.path.basename(path)
@@ -25,10 +23,11 @@ def retrieve_cf_document(cf_number, path):
 
     while not download_success and attempt_count < 5:
         try:
+            r = requests.get(path, stream=True, timeout=(5, 15))
             with open(file_location + '/' + filename, 'wb') as fd:
                 for chunk in r.iter_content(chunk_size):
                     fd.write(chunk)
-                download_success = True
+            download_success = True
         except requests.exceptions.ConnectionError:
             print('***** Failed to connect {}'.format(path))
         except requests.exceptions.Timeout:

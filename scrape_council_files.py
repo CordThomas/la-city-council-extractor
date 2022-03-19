@@ -37,8 +37,8 @@ def process_cf_records(conn, cf_url_base, cf_item_pattern):
     :param cf_item_pattern:  The year-file pattern compiled in this method to complete the URL
     """
     meta_words = []
-    start_at = 1169
-    first_range = 12
+    start_at = 1340
+    first_range = 20
     for year in range(first_range, 23):
         empty_cf_pages = 0
         for cf in range(5000):
@@ -69,17 +69,28 @@ def process_cf_records(conn, cf_url_base, cf_item_pattern):
                         # process_cf_activity(soup, conn, cf_number)
                         process_cf_document(soup, conn, cf_number)
 
-                        # If we have found more than 20 consecutive empty pages, break for the year
+                        download_success = True
+
+                        # If we have found more than 20 consecutive empty pages, break out of the inner loop
                         if empty_cf_pages >= 20:
                             break
                     except requests.exceptions.ConnectionError:
                         print('***** Failed to connect {}'.format(cf_url))
+                        attempt_count += 1
                     except requests.exceptions.Timeout:
                         print('***** Timed out {}'.format(cf_url))
                         attempt_count += 1
                         time.sleep(5)
                     except Exception as exc:
                         print(exc)
+                        break
+
+                # If we have found more than 20 consecutive empty pages, break for the year, outer loop
+                if empty_cf_pages >= 20:
+                    break
+
+
+
 
     # This bit should be pulled out into a separate method - it's part of
     # a pre-stage process to identify all the council file summary labels
