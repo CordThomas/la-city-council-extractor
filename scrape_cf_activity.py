@@ -1,5 +1,4 @@
 from db import *
-import unicodedata
 from bs4 import BeautifulSoup
 
 

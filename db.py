@@ -157,6 +157,14 @@ def insert_vote_result(conn, cf_num, council_member, council_district, vote):
     conn.commit()
 
 
+def insert_new_council_document(conn, cf_number, action_date, title, file_name):
+
+    sql = ''' INSERT INTO council_documents(cf_number, action_date, title, file_name)
+              VALUES(?, ?, ?, ?) '''
+    cur = conn.cursor()
+    cur.execute(sql, (cf_number, action_date, title, file_name))
+    conn.commit()
+
 def insert_council_distance_entry(conn, council_district_1, council_district_2, distance):
 
     sql = 'insert into council_distance_matrix values (?, ?, ?)'
