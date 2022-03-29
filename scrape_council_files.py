@@ -37,8 +37,8 @@ def process_cf_records(conn, cf_url_base, cf_item_pattern):
     :param cf_item_pattern:  The year-file pattern compiled in this method to complete the URL
     """
     meta_words = []
-    start_at = 1340
-    first_range = 20
+    start_at = 23
+    first_range = 21
     for year in range(first_range, 23):
         empty_cf_pages = 0
         for cf in range(5000):
