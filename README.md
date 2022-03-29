@@ -56,6 +56,9 @@ This project was built with:
 
 * [Beautiful Soup](https://www.crummy.com/software/BeautifulSoup/)
 * [urllib](https://pypi.org/project/urllib3/)
+* [tesseract](https://github.com/tesseract-ocr/tesseract)
+* [sqlite](https://www.sqlite.org/index.html)
+* [pdf2image](https://pypi.org/project/pdf2image/)
 
 ## Usage
 
@@ -87,12 +90,23 @@ Project Link: [https://github.com/CordThomas/la-city-council-extractor](https://
 ## Processing
 
 The main process script is scrape_council_files.py
+
+This script loads data into a local sqlite3 database through the following subprocesses:
 * Loops over the history of council files from 2000 through 
-  current from teh LA Council File database
-* Grabs some summary information from each council file (see 
+  current from the LA Council File database (https://cityclerk.lacity.org/lacityclerkconnect/index.cfm) 
+* Extracts some summary information from each council file (see 
   data_structures) (scrape_cf_file)
-* Grabs some summary information about how the council voted (scrape_cf_votes)
+* Extracts some summary information about how the council voted (scrape_cf_votes)
+* Extracts the council activity information (scrape_cf_activity) 
+* Extracts the council documents, downloading a copy of each one
 * Grabs the vote results for each motion
+
+## Analysis
+
+I have begun an effort at topic modelling, sentiment analysis and other things to get a
+sense of what the City Council busies itself with.  I took a naive pass what might be topic keywords
+and mined the council file titles to those keywords.   I have now started to extract the raw text from
+the pdf council documents - this is taking a while - so check back soon.
 
 ## Acknowledgements
 * [Dan Kegels Council File Indexer for Community Impact Statements](https://github.com/dankegel/cfindexer)

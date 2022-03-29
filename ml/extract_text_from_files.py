@@ -45,6 +45,7 @@ def extract(base_path, years):
             except Exception as e:
               print(e)
 
+
 if __name__ == "__main__":
 
    extract(base_path, years)
