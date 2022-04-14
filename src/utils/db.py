@@ -18,6 +18,7 @@ def clean_field_for_database(db_field, rectext):
         rectext = rectext[0:999]
     return rectext
 
+
 def create_connection(db_file):
     """ create a database connection to the SQLite database
         specified by db_file
@@ -31,6 +32,23 @@ def create_connection(db_file):
         print(e)
 
     return conn
+
+
+def counfil_file_exists(conn, cf_num):
+    """
+    Check whether we already have this council file
+    :param conn:  Active database connection
+    :param cf_num:  Council file number, format a zero-padded yy-nnnn
+    :return: True if exists
+    """
+    sql = 'SELECT cf_number, date_last_changed FROM council_file WHERE cf_number = ?'
+    cur = conn.cursor()
+    cur.execute(sql, (cf_num, ))
+    data = cur.fetchone()
+    if data is None:
+        return False, ''
+    else:
+        return True, data[1]
 
 
 def insert_new_council_file(conn, cf_num):
@@ -157,13 +175,70 @@ def insert_vote_result(conn, cf_num, council_member, council_district, vote):
     conn.commit()
 
 
-def insert_new_council_document(conn, cf_number, action_date, title, file_name):
-
-    sql = ''' INSERT INTO council_documents(cf_number, action_date, title, file_name)
-              VALUES(?, ?, ?, ?) '''
+def document_exists(conn, cf_num, file_name):
+    """
+    Check whether we already have this council file
+    :param conn:  Active database connection
+    :param cf_num:  Council file number, format a zero-padded yy-nnnn
+    :param file_name:  Document file name
+    :return: True if exists
+    """
+    sql = 'SELECT cf_number, file_name FROM council_document WHERE cf_number = ? and file_name = ?'
     cur = conn.cursor()
-    cur.execute(sql, (cf_number, action_date, title, file_name))
-    conn.commit()
+    cur.execute(sql, (cf_num, file_name))
+    data = cur.fetchone()
+    if data is None:
+        return False
+    else:
+        return True
+
+
+def insert_new_council_document(conn, cf_number, action_date, title, file_name):
+    """
+    Insert a council document number if it doesn't already exist
+    :param conn: Active database connection
+    :param cf_number: Council file number, format a zero-padded yy-nnnn
+    :param action_date: Data the file was processed
+    :param title:
+    :param file_name:
+    :return:
+    """
+
+    if document_exists(conn, cf_number, file_name):
+        return True
+    else:
+        sql = ''' INSERT INTO council_document(cf_number, action_date, title, file_name)
+                  VALUES(?, ?, ?, ?) '''
+        cur = conn.cursor()
+        cur.execute(sql, (cf_number, action_date, title, file_name))
+        conn.commit()
+
+
+def get_council_motion_documents(conn):
+    """
+    Get the list of council documents as full path entries in a list
+    :param conn: Active database connection
+    :return: List of motion documents with full year and cf_number path
+    """
+
+    motion_documents = []
+    sql = 'select cf.cf_number, cf.date_received, replace(cd.file_name, \'.pdf\', \'.txt\') ' \
+          'from council_document cd ' \
+          'join council_file cf on cd.cf_number = cf.cf_number ' \
+          'where cd.title = \'Motion\''
+
+    cur = conn.cursor()
+    for row in cur.execute(sql):
+        year = ''
+        if row[1] is None:
+            year = '20' + row[0][:2]
+        else:
+            year = row[1][:4]
+
+        motion_documents.append(year + '/' + row[0] + '/' + row[2])
+
+    return motion_documents
+
 
 def insert_council_distance_entry(conn, council_district_1, council_district_2, distance):
 

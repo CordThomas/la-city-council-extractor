@@ -1,13 +1,11 @@
-import PIL
 import pytesseract
-import pdf2image
 from os import remove
 from os import walk
 from os.path import exists, isfile, isdir, join
 from pdf2image import pdfinfo_from_path, convert_from_path
 
-base_path = '/mnt/usb1/srv/projects/city-council-files/documents/'
-years = ['2013']
+base_path = '../documents/'
+years = ['2020','2021','2022']
 
 
 def extract(base_path, years):

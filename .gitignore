@@ -1,4 +1,5 @@
 data/backup/
+database/council_file_database_data.sql
 data/city-council.db
 data/*.db-journal
 documents/*

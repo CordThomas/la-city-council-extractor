@@ -1,6 +1,6 @@
 import bs4
-from data_structures import *
-from db import *
+from utils.data_structures import *
+from utils.db import *
 
 
 def done_processing_sections(section):
@@ -47,16 +47,77 @@ def process_record(db_conn, cf_number, reclabel, rectext):
 
     if reclabel in cf_fields:
         db_field = cf_fields[reclabel]
-        rectext=clean_field_for_database(db_field, rectext)
+        rectext = clean_field_for_database(db_field, rectext)
         update_council_file_field(db_conn, cf_number, db_field, rectext)
-        print('We have label {label} with {text}'.format(label=reclabel, text=rectext))
+
+
+def get_last_changed_date(cf_number, soup):
+    """
+    Get the Last Changed Date from the council file
+    :param cf_number:  Council file number, format a zero-padded yy-nnnn
+    :param soup:  The BeautifulSoup object for the council file page
+    :return:  the iso formated last change date for the council file
+    """
+
+    sections = soup.find_all('div', {'class': 'section'})
+    reclabel = ''
+    rectext = ''
+    grab_next_text = False
+    for section in sections:
+        for index, element in enumerate(section.descendants):
+            if isinstance(element, bs4.element.Tag):
+                if 'class' in element.attrs:
+                    if contains_class(element.attrs['class'], 'reclabel'):
+                        try:
+                            reclabel = element.string.strip()
+                        except Exception:
+                            pass
+
+                    if grab_next_text:
+                        try:
+                            for elementitem in element:
+                                if isinstance(elementitem, bs4.element.NavigableString):
+                                    rectext += str(elementitem.string) + '; '
+                                elif isinstance(elementitem, bs4.element.Tag):
+                                    rectext = elementitem.string.strip()
+                                    break
+                            return rectext
+                        except Exception:
+                            pass
+
+                    if reclabel == 'Last Changed Date':
+                        grab_next_text = True
+
+
+def check_if_update(db_conn, cf_number, soup):
+    """
+    Check whether this council file is an update because it is
+    either a new record or the Last Changed Date is greater than
+    the CF's date_last_changed as recorded in the database.
+    :param db_conn:   The database connection handle
+    :param cf_number:  Council file number, format a zero-padded yy-nnnn
+    :param soup:  The BeautifulSoup object for the council file page
+    :return:
+    """
+    council_file_exists, date_last_changed = counfil_file_exists(db_conn, cf_number)
+    if not council_file_exists:
+        print('==== We have a new record')
+        return 'new'
+    else:
+        last_changed_date = get_last_changed_date(cf_number, soup)
+        last_changed_date = iso_format_date(last_changed_date)
+        if date.fromisoformat(last_changed_date) > date.fromisoformat(date_last_changed):
+            print('==== We have an updated record')
+            return 'update'
+
+    return ''
 
 
 def parse_section(db_conn, cf_number, section, meta_words):
     """ Parse the section of the council file meta information to
     extract the field label and field text.  The HTML has a variety of
     formats.  The method should process all permutations.
-    :param db_conn:  The HTML section DIV currently being evaluated
+    :param db_conn:  The database connection handle
     :param cf_number:  Council file number, format a zero-padded yy-nnnn
     :param section:  The HTML section from which to extract the label and value
     :param meta_words:  The list used to track all the possible field names; should
@@ -88,7 +149,7 @@ def parse_section(db_conn, cf_number, section, meta_words):
                         except Exception:
                             pass
 
-            if len(reclabel) > 0 and len(rectext) > 0:
+            if reclabel is not None and len(reclabel) > 0 and rectext is not None and len(rectext) > 0:
                 # if reclabel not in meta_words:
                 #     meta_words.append(reclabel)
                 # if 'Date' in reclabel:
@@ -100,7 +161,7 @@ def parse_section(db_conn, cf_number, section, meta_words):
 def process_cf_council_file(soup, meta_words, db_conn, cf_number):
     """ Process the council_file meta data section of the page
     :param soup:  The BeautifulSoup object for the council file page
-    :param db_conn:  The HTML section DIV currently being evaluated
+    :param db_conn:  The database connection handle
     :param cf_number:  Council file number, format a zero-padded yy-nnnn
     :param meta_words:  The list used to track all the possible field names; should
     be part of a separate method or even preprocesing script to create the structure
@@ -112,17 +173,21 @@ def process_cf_council_file(soup, meta_words, db_conn, cf_number):
     """
 
     missing_sections = 1
+    is_update = False
 
     sections = soup.find_all('div', {'class': 'section'})
 
     if len(sections) > 0:
         missing_sections = 0
 
-    for section in sections:
-        if done_processing_sections(section):
-            break
-        # If we have a set of children we know we have content
-        if len(section) > 1:
-            parse_section(db_conn, cf_number, section, meta_words)
+        is_update = check_if_update(db_conn, cf_number, soup)
 
-    return missing_sections
+        if is_update in ['new', 'update']:
+            for section in sections:
+                if done_processing_sections(section):
+                    break
+                # If we have a set of children we know we have content
+                if len(section) > 1:
+                    parse_section(db_conn, cf_number, section, meta_words)
+
+    return missing_sections, is_update

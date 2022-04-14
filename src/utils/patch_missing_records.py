@@ -1,10 +1,7 @@
-from db import *
-from scrape_cf_activity import process_cf_activity
 from bs4 import BeautifulSoup
 import requests
 import urllib3
-from scrape_cf_file import *
-from scrape_cf_votes import *
+from src.scrape_cf_votes import *
 
 cf_url_base = 'https://cityclerk.lacity.org/lacityclerkconnect/index.cfm?fa=ccfi.viewrecord&cfnumber={}'
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -30,7 +27,7 @@ def patch_missing_cfs(db_conn, url_base, missing_cfs):
 
 def patch(url_base, missing_cfs):
 
-    db_file = 'data/city-council.db'
+    db_file = '../../data/city-council.db'
     db_conn = create_connection(db_file)
     patch_missing_cfs(db_conn, url_base, missing_cfs)
     db_conn.close()

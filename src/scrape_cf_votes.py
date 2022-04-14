@@ -1,4 +1,4 @@
-from db import *
+from utils.db import *
 import unicodedata
 
 
