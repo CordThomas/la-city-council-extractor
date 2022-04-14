@@ -1,5 +1,4 @@
-from db import *
-from bs4 import BeautifulSoup
+from utils.db import *
 
 
 def process_cf_activity(soup, conn, cf_number):

@@ -1,11 +1,10 @@
-from db import *
+from utils.db import *
 import requests
 import os
 import time
-from bs4 import BeautifulSoup
 from pathlib import Path
 
-docs_base = './documents/'
+docs_base = '../documents/'
 chunk_size = 2048
 
 # https://stackoverflow.com/questions/16511337/correct-way-to-try-except-using-python-requests-module
@@ -56,9 +55,11 @@ def process_cf_document(soup, conn, cf_number):
                     title = table_cells[0].text.strip()
                     post_date = table_cells[1].text.strip()
 
-                    retrieve_cf_document(cf_number, document_path)
-                    print('Date: {} for title {} with path {}'.format(post_date, title, document_path))
-
                     file_name = os.path.basename(document_path)
-                    insert_new_council_document(conn, cf_number, post_date, title, file_name)
+                    document_already_processed = insert_new_council_document(conn, cf_number, post_date, title, file_name)
+
+                    if not document_already_processed:
+                        retrieve_cf_document(cf_number, document_path)
+                    # print('Date: {} for title {} with path {}'.format(post_date, title, document_path))
+
                 table_row_idx += 1

@@ -1,10 +1,8 @@
 import openpyxl
+from utils import db
 
-import db
-from db import *
-
-source_file_path = 'data/council district proximity.xlsx'
-db_path = 'data/city-council.db'
+source_file_path = '../../data/council district proximity.xlsx'
+db_path = '../../data/city-council.db'
 
 wrkbk = openpyxl.load_workbook(source_file_path)
 wrksh = wrkbk.active

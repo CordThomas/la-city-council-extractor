@@ -4,15 +4,13 @@
 """Scrape the Los Angeles City Council council file and voting history.
 """
 from bs4 import BeautifulSoup
-import requests
 import urllib3
 
 from scrape_cf_file import *
 from scrape_cf_votes import *
 from scrape_cf_activity import *
 from scrape_cf_documents import *
-
-from db import *
+from utils.db import *
 
 # tell urllib to ignore SSL warnings - another approach would be to
 # setup your python environment to trust the SSL certificate of the target website
@@ -65,8 +63,8 @@ def process_cf_records(conn, cf_url_base, cf_item_pattern):
                             empty_cf_pages = 0
                         else:
                             empty_cf_pages += empty_cf_page
-                        # process_cf_votes(soup, conn, cf_number, True)
-                        # process_cf_activity(soup, conn, cf_number)
+                        process_cf_votes(soup, conn, cf_number, True)
+                        process_cf_activity(soup, conn, cf_number)
                         process_cf_document(soup, conn, cf_number)
 
                         download_success = True
@@ -109,7 +107,7 @@ def main():
     recess schedule, the state and federal legislative program, and Commendatory
     Resolutions.
     """
-    db_file = 'data/city-council.db'
+    db_file = '../data/city-council.db'
     db_conn = create_connection(db_file)
 
     cf_url_base = 'https://cityclerk.lacity.org/lacityclerkconnect/index.cfm?fa=ccfi.viewrecord&cfnumber='
