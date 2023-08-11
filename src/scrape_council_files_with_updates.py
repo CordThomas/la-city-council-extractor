@@ -20,7 +20,7 @@ from utils.db import *
 # tell urllib to ignore SSL warnings - another approach would be to
 # setup your python environment to trust the SSL certificate of the target website
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-db_file = '../../data/city-council.db'
+db_file = '../data/city-council.db'
 
 
 def process_cf_record(conn, cf_number, cf_url, meta_words):
@@ -40,7 +40,7 @@ def process_cf_record(conn, cf_number, cf_url, meta_words):
             for linebreak in soup.find_all('br'):
                 linebreak.extract()
 
-            # insert_new_council_file(conn, cf_number)
+            insert_new_council_file(conn, cf_number)
             empty_cf_page, is_update = process_cf_council_file(soup, meta_words, conn, cf_number)
             erl = 3
             if empty_cf_page != 0:
@@ -73,7 +73,7 @@ def process_cf_record(conn, cf_number, cf_url, meta_words):
 
 def process_cf_records(conn, cf_url_base, cf_item_pattern):
     """ Loop over the collection of years of interest (we started in 2010 but this
-    script starts 2 years from this year)
+    script starts 1 year ago from this year)
     and the number of council file records (varies considerably
     from year to year with nearly 2,200 in 2012 to only 1,400 in other years).
     Relies on BeautifulSoup to parse the HTML and extract data to insert into
@@ -91,14 +91,18 @@ def process_cf_records(conn, cf_url_base, cf_item_pattern):
     """
     meta_words = []
     this_year = datetime.date.today().year
-    first_year = this_year - 2
+    first_year = this_year
+    begin_processing = True
     for year in range(first_year, this_year + 1):
         empty_cf_pages = 0
         for cf in range(5000):
             cf_number = cf_item_pattern.format(year=str(year)[2:].zfill(2), item=str(cf).zfill(4))
             cf_url = cf_url_base + cf_number
-            print(cf_url)
-            empty_cf_pages += process_cf_record(conn, cf_number, cf_url, meta_words)
+            # if str(year) == '2022' and str(cf) == '273':
+            #     begin_processing = True
+            if begin_processing:
+                print(cf_url)
+                empty_cf_pages += process_cf_record(conn, cf_number, cf_url, meta_words)
 
             # If we have found more than 20 consecutive empty pages, break for the year, outer loop
             if empty_cf_pages >= 20:
