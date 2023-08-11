@@ -133,10 +133,10 @@ def delete_vote_records(db_conn, cf_number):
     """
 
     cur = db_conn.cursor()
-    sql = '''DELETE FROM vote_results WHERE cf_number=?;'''
+    sql = '''DELETE FROM council_vote_result WHERE cf_number=?;'''
     cur.execute(sql, (cf_number, ))
 
-    sql = '''DELETE FROM votes WHERE cf_number=?;'''
+    sql = '''DELETE FROM council_vote WHERE cf_number=?;'''
     cur.execute(sql, (cf_number, ))
     db_conn.commit()
 
@@ -151,7 +151,7 @@ def insert_vote(conn, cf_num, vote_date, vote_type, vote_action):
     :param vote_action:  The outcome of the vote - there are 28 values
     """
 
-    sql = ''' INSERT INTO votes(cf_number, meeting_date, meeting_type, vote_action)
+    sql = ''' INSERT INTO council_vote(cf_number, meeting_date, meeting_type, vote_action)
               VALUES(?, ?, ?, ?) '''
     cur = conn.cursor()
     cur.execute(sql, (cf_num, vote_date, vote_type, vote_action))
@@ -168,7 +168,7 @@ def insert_vote_result(conn, cf_num, council_member, council_district, vote):
     :param vote:  The council member's vote, ABSENT, YES, NO
     """
 
-    sql = ''' INSERT INTO vote_results(cf_number, council_district, council_member, vote)
+    sql = ''' INSERT INTO council_vote_result(cf_number, council_district, council_member, vote)
               VALUES(?, ?, ?, ?) '''
     cur = conn.cursor()
     cur.execute(sql, (cf_num, int(council_district), council_member, vote))

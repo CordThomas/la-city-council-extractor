@@ -1,6 +1,8 @@
 import bs4
 from utils.data_structures import *
 from utils.db import *
+from utils.utils import iso_format_date
+from datetime import date
 
 
 def done_processing_sections(section):
@@ -104,9 +106,9 @@ def check_if_update(db_conn, cf_number, soup):
         print('==== We have a new record')
         return 'new'
     else:
-        last_changed_date = get_last_changed_date(cf_number, soup)
-        last_changed_date = iso_format_date(last_changed_date)
-        if date.fromisoformat(last_changed_date) > date.fromisoformat(date_last_changed):
+        cf_last_changed_date = get_last_changed_date(cf_number, soup)
+        cf_last_changed_date = iso_format_date(cf_last_changed_date)
+        if date_last_changed is None or date.fromisoformat(cf_last_changed_date) > date.fromisoformat(date_last_changed):
             print('==== We have an updated record')
             return 'update'
 
