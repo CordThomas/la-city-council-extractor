@@ -101,6 +101,16 @@ This script loads data into a local sqlite3 database through the following subpr
 * Extracts the council documents, downloading a copy of each one
 * Grabs the vote results for each motion
 
+## Ongoing Processing
+
+Once you've got things working and you've extracted the full set of council file information
+you can then automatically update the database from the latest file updates using the
+script scrape_council_files_with_updates that goes back as many years as first_year 
+(in method process_cf_records).  I you might want to go back 1 year, so, the line would look
+like first_year = this_year - 1.  At the end of a year, it's going to be wasting a lot of cycles.
+I have not done any analysis to see how far back, on average, council files are updated and
+they can stay valid for several years, so it may be necessary to back at least a year.
+
 ## Analysis
 
 I have begun an effort at topic modelling, sentiment analysis and other things to get a
