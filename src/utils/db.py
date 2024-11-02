@@ -1,6 +1,6 @@
 import sqlite3
 from sqlite3 import Error
-
+from las_utils import database_utils as dbu
 
 def clean_field_for_database(db_field, rectext):
     """
@@ -49,6 +49,37 @@ def counfil_file_exists(conn, cf_num):
         return False, ''
     else:
         return True, data[1]
+
+
+def get_council_files(conn):
+    """
+    Return a dictionary of council file records
+    :param conn:  Active database connection
+    :return: Dictionary of council file records
+    """
+    sql = 'SELECT cf_number, council_district, date_received, mover, pending_committee, ' \
+          'second, title, subject FROM council_file ' \
+          'WHERE title is not NULL AND LENGTH(title) > 0 ;'
+    data = dbu.select(conn, sql)
+    cfs = {}
+    for cf in data:
+        cfs[cf[0]] = {'district': cf[1], 'date_received': cf[2], 'mover': cf[3], 'pending_committee': cf[4],
+                      'second': cf[5], 'title': cf[6], 'subject': cf[7]}
+
+    return cfs
+
+def get_legislative_topics(conn):
+    """
+    Return a list of legislative topics and their keywords as a dictionary
+    """
+    sql = 'SELECT topic_id, topic_keyphrase ' \
+          'FROM legislative_topic;'
+    data = dbu.select(conn, sql)
+    topics = []
+    for topic in data:
+        topics.append({'id': topic[0], 'topic': topic[1]})
+
+    return topics
 
 
 def insert_new_council_file(conn, cf_num):
