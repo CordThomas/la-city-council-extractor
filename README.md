@@ -69,6 +69,10 @@ python scrape_council_files.py
 To process subsets of the council files, edit lines 37 and 39 of 
 the scrape_council_files.py scripts
 
+To put into a regular production, see Ongoing Processing below.
+
+python scrape_council_files_with_updates.py
+
 ## Contributing
 
 1. Fork the Project
@@ -106,7 +110,7 @@ This script loads data into a local sqlite3 database through the following subpr
 Once you've got things working and you've extracted the full set of council file information
 you can then automatically update the database from the latest file updates using the
 script scrape_council_files_with_updates that goes back as many years as first_year 
-(in method process_cf_records).  I you might want to go back 1 year, so, the line would look
+(in method process_cf_records).  You might want to go back 1 year, so, the line would look
 like first_year = this_year - 1.  At the end of a year, it's going to be wasting a lot of cycles.
 I have not done any analysis to see how far back, on average, council files are updated and
 they can stay valid for several years, so it may be necessary to back at least a year.
@@ -117,6 +121,14 @@ I have begun an effort at topic modelling, sentiment analysis and other things t
 sense of what the City Council busies itself with.  I took a naive pass what might be topic keywords
 and mined the council file titles to those keywords.   I have now started to extract the raw text from
 the pdf council documents - this is taking a while - so check back soon.
+
+## Management and Sharing Online
+
+I have looked around for a lightweight means to publish and manage the data collected from the 
+council database. I found [https://jampyapplicationbuilder.pages.dev/](Jam.py) after casually looking for 
+several years. This project is a web-based platform for constructing interactive and event-driven web applications.
+I am just starting but looking forward to publishing something online soon so people can interact 
+with graphs of how the City Council and our Council Members operate, cooperate and make our collective lives better.
 
 ## Acknowledgements
 * [Dan Kegels Council File Indexer for Community Impact Statements](https://github.com/dankegel/cfindexer)

@@ -6,6 +6,7 @@ from las_utils import system_utils as sysu
 import configparser
 import socket
 
+
 def main():
     """
     Create a Sankey chart of the Mover to Seconder relationships for active council members
@@ -20,12 +21,16 @@ def main():
     analysis_ouput = config['Locations.{}'.format(config_section)]['analysis_output']
 
     db_conn = create_connection(db_file)
+
+    initials = get_council_member_intials(db_conn)
+
     sql = 'SELECT SUBSTRING(cd1.name_first, 1, 1) || SUBSTRING(cd1.name_last, 1, 1) as Mover, ' \
           'SUBSTRING(cd2.name_first, 1, 1) || SUBSTRING(cd2.name_last, 1, 1) as Second, count(*) AS value ' \
           'FROM council_file cf ' \
           'JOIN council_district_member cd1 on cf.MOVER = cd1.mover_name and LENGTH(cd1.end_date) = 0 ' \
           'JOIN council_district_member cd2 on cf.SECOND = cd2.mover_name and LENGTH(cd2.end_date) = 0 ' \
-          'GROUP BY  mover, second;'
+          'GROUP BY Mover, Second ' \
+          'ORDER BY cd1.name_last;'
 
     df = pd.read_sql(sql, db_conn)
     heatmap = hv.HeatMap(df, label='A Comparison of Los Angeles City Council Member Motion Filing Relationships')

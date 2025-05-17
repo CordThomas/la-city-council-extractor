@@ -6,7 +6,9 @@ documents/*
 .idea
 .DS_Store
 __pycache__
-*.xlsx
-*.html
+*.bkp
 *.csv
+*.html
 *.sqbpro
+*.xlsx
+*.zip

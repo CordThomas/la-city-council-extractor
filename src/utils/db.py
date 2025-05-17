@@ -68,6 +68,22 @@ def get_council_files(conn):
 
     return cfs
 
+
+def get_council_member_intials(db_conn):
+
+    initial_list = []
+    sql = 'SELECT SUBSTRING(cd1.name_first, 1, 1) || SUBSTRING(cd1.name_last, 1, 1) AS initials ' \
+          'FROM council_district_member cd1 ' \
+          'WHERE LENGTH(cd1.end_date) = 0 ' \
+          'ORDER BY initials'
+
+    initials = dbu.select(db_conn, sql)
+
+    for initial in initials:
+        initial_list.append(initial)
+
+    return initial_list
+
 def get_legislative_topics(conn):
     """
     Return a list of legislative topics and their keywords as a dictionary

@@ -10,11 +10,14 @@
 from bs4 import BeautifulSoup
 import urllib3
 import datetime
+import configparser
+import socket
 
 from scrape_cf_file import *
 from scrape_cf_votes import *
 from scrape_cf_activity import *
 from scrape_cf_documents import *
+from las_utils import system_utils as sysu
 from utils.db import *
 
 # tell urllib to ignore SSL warnings - another approach would be to
@@ -91,7 +94,7 @@ def process_cf_records(conn, cf_url_base, cf_item_pattern):
     """
     meta_words = []
     this_year = datetime.date.today().year
-    first_year = this_year
+    first_year = this_year - 1
     begin_processing = True
     for year in range(first_year, this_year + 1):
         empty_cf_pages = 0
@@ -125,6 +128,12 @@ def main():
     recess schedule, the state and federal legislative program, and Commendatory
     Resolutions.
     """
+    hostname = socket.gethostname()
+    config = configparser.ConfigParser()
+    config.read('config/base.ini')
+    config_section = sysu.get_config_section(hostname)
+    db_file = config['Locations.{}'.format(config_section)]['db_path']
+
     db_conn = create_connection(db_file)
 
     cf_url_base = 'https://cityclerk.lacity.org/lacityclerkconnect/index.cfm?fa=ccfi.viewrecord&cfnumber='
@@ -132,6 +141,7 @@ def main():
     process_cf_records(db_conn, cf_url_base, cf_item_pattern)
 
     db_conn.close()
+
 
 if __name__ == "__main__":
     main()

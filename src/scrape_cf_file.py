@@ -1,3 +1,8 @@
+"""
+Script uses BeautifulSoup4 to parse HTML label:value pairs from the City Council motion pages
+and loads them in a database. The basis of the script uses a mapping (from data_structures) of
+HTML tag IDs to database fields to figure out where to store the data in the database.
+"""
 import bs4
 from utils.data_structures import *
 from utils.db import *
@@ -10,7 +15,7 @@ def done_processing_sections(section):
     file summary section.  If we want to process the File Activities, then
     this would be something to update.  Turns out the format of the file
     page changes dating before 2009 where the transition is to "File History"
-    and the file activities are not linked but still linked in in the online
+    and the file activities are not linked but still linked in the online
     document section in the top right.
     :param section:  The HTML section DIV currently being evaluated
     :return: True if we're at the stopping point, otherwise False
@@ -25,7 +30,7 @@ def contains_class(class_list, class_match):
     """ Determines if the class_match is in the class_list.
     Not sure why I didn't just say class_match in class_list but
     think that for some reason the BeautifulSoup list didn't support
-    that or there was somethign else wrong.
+    that or there was something else wrong.
     :param class_list:  A list of HTML classes
     :param class_match:  The class we are looking for
     :return: True if the match class is in the list
@@ -168,10 +173,10 @@ def process_cf_council_file(soup, meta_words, db_conn, cf_number):
     :param meta_words:  The list used to track all the possible field names; should
     be part of a separate method or even preprocesing script to create the structure
     of the database table schema.
-    :return missing_sections:  Returns whether the council file page is
+    :return missing_sections, is_update:  Returns whether the council file page is
      missing sections (1).   If not, this suggests the page was empty - there
      are empty pages in the middle of the year, so cannot assume that the first
-     empty page signals the end of the year.
+     empty page signals the end of the year. is_update
     """
 
     missing_sections = 1

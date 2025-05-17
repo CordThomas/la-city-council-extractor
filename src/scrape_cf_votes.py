@@ -12,6 +12,7 @@ def process_cf_votes(soup, db_conn, cf_number, overwrite):
     :param db_conn:  The HTML section DIV currently being evaluated
     :param cf_number:  Council file number, format a zero-padded yy-nnnn
     :param overwrite:  If overwrite, then we execute a delete first
+    :return: Nothing
     """
 
     if overwrite:
