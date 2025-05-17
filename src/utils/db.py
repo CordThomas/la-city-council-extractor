@@ -288,8 +288,16 @@ def get_council_motion_documents(conn):
 
 
 def insert_council_distance_entry(conn, council_district_1, council_district_2, distance):
+    """
+    Insert a record into the council_distance_matrix for district similarity analysis.
+    :param conn: Active database connection
+    :param council_district_1: First council district
+    :param council_district_2: Second council district
+    :param distance: The decimal distance between district_1 and district_2
+    :return: Nothing
+    """
 
-    sql = 'insert into council_distance_matrix values (?, ?, ?)'
+    sql = 'insert into council_distance_matrix (council_n1, council_n2, distance) values (?, ?, ?)'
     cur = conn.cursor()
     cur.execute(sql, (council_district_1, council_district_2, distance))
     conn.commit()
