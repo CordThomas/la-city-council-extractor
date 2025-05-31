@@ -26,7 +26,24 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 db_file = '../data/city-council.db'
 
 
-def process_cf_record(conn, cf_number, cf_url, meta_words):
+def process_cf_record(conn, cf_number, cf_url, meta_words, process_documents_only=False):
+    """ Loop over the collection of years of interest (we ran from 2010 to
+    2021 inclusive) and the number of council file records (varies considerably
+    from year to year with nearly 2,200 in 2012 to only 1,400 in other years).
+    Relies on BeautifulSoup to parse the HTML and extract data to insert into
+    a SQLite database.
+
+    Note:  The online database starts in 1990.  It looks like there was a change in
+    structure from 2008 to 2009, maybe when the system was upgraded or migrated.
+    Prior to 2009, there was a Subject field that included a summary of the file
+    and the list of file activities at the bottom of the page is a simple text
+    list vs the list of files and links.
+
+    :param conn:  Active database connection
+    :param cf_url_base:  The base URL for the council file data page
+    :param cf_item_pattern:  The year-file pattern compiled in this method to complete the URL
+    :param process_documents_only: To get the historical documents or documents we might have missed, set to True
+    """
 
     download_success = False
     attempt_count = 0
@@ -43,17 +60,20 @@ def process_cf_record(conn, cf_number, cf_url, meta_words):
             for linebreak in soup.find_all('br'):
                 linebreak.extract()
 
-            insert_new_council_file(conn, cf_number)
-            empty_cf_page, is_update = process_cf_council_file(soup, meta_words, conn, cf_number)
+            if not process_documents_only:
+                insert_new_council_file(conn, cf_number)
+
+            empty_cf_page, is_update = process_cf_council_file(soup, meta_words, conn, cf_number,
+                                                               process_documents_only)
             erl = 3
             if empty_cf_page != 0:
                 return empty_cf_page
             elif is_update in ['new', 'update']:
-                process_cf_votes(soup, conn, cf_number, True)
+                process_cf_votes(soup, conn, cf_number, process_documents_only, True)
                 erl = 4
-                process_cf_activity(soup, conn, cf_number)
+                process_cf_activity(soup, conn, cf_number, process_documents_only)
                 erl = 5
-                process_cf_document(soup, conn, cf_number)
+                process_cf_document(soup, conn, cf_number, process_documents_only)
                 erl = 6
 
             download_success = True
@@ -94,18 +114,19 @@ def process_cf_records(conn, cf_url_base, cf_item_pattern):
     """
     meta_words = []
     this_year = datetime.date.today().year
-    first_year = this_year - 1
+    first_year = 2011 - 1
     begin_processing = True
-    for year in range(first_year, this_year + 1):
+    for year in range(2011, 2024):
+    # for year in range(first_year, this_year + 1):
         empty_cf_pages = 0
-        for cf in range(5000):
+        for cf in range(1, 5000):
             cf_number = cf_item_pattern.format(year=str(year)[2:].zfill(2), item=str(cf).zfill(4))
             cf_url = cf_url_base + cf_number
             # if str(year) == '2022' and str(cf) == '273':
             #     begin_processing = True
             if begin_processing:
                 print(cf_url)
-                empty_cf_pages += process_cf_record(conn, cf_number, cf_url, meta_words)
+                empty_cf_pages += process_cf_record(conn, cf_number, cf_url, meta_words, True)
 
             # If we have found more than 20 consecutive empty pages, break for the year, outer loop
             if empty_cf_pages >= 20:

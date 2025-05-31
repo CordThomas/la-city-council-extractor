@@ -2,7 +2,7 @@ from utils.db import *
 import unicodedata
 
 
-def process_cf_votes(soup, db_conn, cf_number, overwrite):
+def process_cf_votes(soup, db_conn, cf_number, process_documents_only=False, overwrite=False):
     """ Process the Votes section of the council file page.  There are
     two sections of the page we could break out into separate methods.  The
     first is the summary information including the date and type of
@@ -11,9 +11,13 @@ def process_cf_votes(soup, db_conn, cf_number, overwrite):
     :param soup:  The BeautifulSoup object for the council file page
     :param db_conn:  The HTML section DIV currently being evaluated
     :param cf_number:  Council file number, format a zero-padded yy-nnnn
+    :param process_documents_only: To get the historical documents or documents we might have missed, set to True
     :param overwrite:  If overwrite, then we execute a delete first
     :return: Nothing
     """
+
+    if process_documents_only:
+        return None
 
     if overwrite:
         delete_vote_records(db_conn, cf_number)

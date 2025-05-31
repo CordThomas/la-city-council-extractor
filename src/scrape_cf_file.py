@@ -165,7 +165,7 @@ def parse_section(db_conn, cf_number, section, meta_words):
                 rectext = ''
 
 
-def process_cf_council_file(soup, meta_words, db_conn, cf_number):
+def process_cf_council_file(soup, meta_words, db_conn, cf_number, process_documents_only=False):
     """ Process the council_file meta data section of the page
     :param soup:  The BeautifulSoup object for the council file page
     :param db_conn:  The database connection handle
@@ -173,6 +173,7 @@ def process_cf_council_file(soup, meta_words, db_conn, cf_number):
     :param meta_words:  The list used to track all the possible field names; should
     be part of a separate method or even preprocesing script to create the structure
     of the database table schema.
+    :param process_documents_only: To get the historical documents or documents we might have missed, set to True
     :return missing_sections, is_update:  Returns whether the council file page is
      missing sections (1).   If not, this suggests the page was empty - there
      are empty pages in the middle of the year, so cannot assume that the first
@@ -183,6 +184,9 @@ def process_cf_council_file(soup, meta_words, db_conn, cf_number):
     is_update = False
 
     sections = soup.find_all('div', {'class': 'section'})
+
+    if process_documents_only:
+        return 0 if len(sections) > 0 else 1, 'update'
 
     if len(sections) > 0:
         missing_sections = 0

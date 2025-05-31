@@ -17,7 +17,7 @@ from utils.db import *
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-def process_cf_records(conn, cf_url_base, cf_item_pattern):
+def process_cf_records(conn, cf_url_base, cf_item_pattern, process_documents_only=False):
     """ Loop over the collection of years of interest (we ran from 2010 to
     2021 inclusive) and the number of council file records (varies considerably
     from year to year with nearly 2,200 in 2012 to only 1,400 in other years).
@@ -33,11 +33,12 @@ def process_cf_records(conn, cf_url_base, cf_item_pattern):
     :param conn:  Active database connection
     :param cf_url_base:  The base URL for the council file data page
     :param cf_item_pattern:  The year-file pattern compiled in this method to complete the URL
+    :param process_documents_only: To get the historical documents or documents we might have missed, set to True
     """
     meta_words = []
     start_at = 1
-    first_range = 24
-    for year in range(first_range, 25):
+    first_range = 10
+    for year in range(first_range, 11):
         empty_cf_pages = 0
         for cf in range(5000):
             if year != first_range or (year == first_range and cf >= start_at):
@@ -58,14 +59,15 @@ def process_cf_records(conn, cf_url_base, cf_item_pattern):
                             linebreak.extract()
 
                         # insert_new_council_file(conn, cf_number)
-                        empty_cf_page = process_cf_council_file(soup, meta_words, conn, cf_number)
+                        empty_cf_page = process_cf_council_file(soup, meta_words, conn, cf_number,
+                                                                process_documents_only)
                         if empty_cf_page == 0:
                             empty_cf_pages = 0
                         else:
                             empty_cf_pages += empty_cf_page
-                        process_cf_votes(soup, conn, cf_number, True)
-                        process_cf_activity(soup, conn, cf_number)
-                        process_cf_document(soup, conn, cf_number)
+                        process_cf_votes(soup, conn, cf_number, process_documents_only, True)
+                        process_cf_activity(soup, conn, cf_number, process_documents_only)
+                        process_cf_document(soup, conn, cf_number, process_documents_only)
 
                         download_success = True
 
@@ -112,7 +114,7 @@ def main():
 
     cf_url_base = 'https://cityclerk.lacity.org/lacityclerkconnect/index.cfm?fa=ccfi.viewrecord&cfnumber='
     cf_item_pattern = '{year}-{item}'
-    process_cf_records(db_conn, cf_url_base, cf_item_pattern)
+    process_cf_records(db_conn, cf_url_base, cf_item_pattern, True)
 
 
 if __name__ == "__main__":

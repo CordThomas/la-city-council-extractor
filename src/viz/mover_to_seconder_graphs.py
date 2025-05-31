@@ -18,8 +18,8 @@ def load_mover_seconder_data(db_conn):
           'join council_district_member cm on cf.mover = cm.mover_name where LENGTH(cm.end_date) = 0 ' \
           'and mover is not null and second is not null and cast(substr(date_received, 1, 4) as integer) > 2010 ' \
           'and second in (select mover_name from council_district_member cd where LENGTH(end_date) = 0) ' \
-          'group by mover, second order by mover ' \
-          'ORDER BY cd.name_last;'
+          'group by mover, second ' \
+          'order by mover;'
 
     movers_seconders = dbu.select(db_conn, sql)
     ms_dict = {}
