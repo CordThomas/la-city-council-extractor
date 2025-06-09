@@ -65,6 +65,7 @@ def process_cf_record(conn, cf_number, cf_url, meta_words, process_documents_onl
 
             empty_cf_page, is_update = process_cf_council_file(soup, meta_words, conn, cf_number,
                                                                process_documents_only)
+
             erl = 3
             if empty_cf_page != 0:
                 return empty_cf_page
@@ -73,8 +74,9 @@ def process_cf_record(conn, cf_number, cf_url, meta_words, process_documents_onl
                 erl = 4
                 process_cf_activity(soup, conn, cf_number, process_documents_only)
                 erl = 5
-                process_cf_document(soup, conn, cf_number, process_documents_only)
-                erl = 6
+
+            process_cf_document(soup, conn, cf_number, process_documents_only)
+            erl = 6
 
             download_success = True
 
@@ -113,20 +115,25 @@ def process_cf_records(conn, cf_url_base, cf_item_pattern):
     :param cf_item_pattern:  The year-file pattern compiled in this method to complete the URL
     """
     meta_words = []
+    process_documents_only = False
     this_year = datetime.date.today().year
     first_year = 2011 - 1
     begin_processing = True
-    for year in range(2011, 2024):
+    for year in range(2017, 2020):
     # for year in range(first_year, this_year + 1):
         empty_cf_pages = 0
-        for cf in range(1, 5000):
+        for cf in range(1, 4000):
             cf_number = cf_item_pattern.format(year=str(year)[2:].zfill(2), item=str(cf).zfill(4))
             cf_url = cf_url_base + cf_number
-            # if str(year) == '2022' and str(cf) == '273':
-            #     begin_processing = True
             if begin_processing:
-                print(cf_url)
-                empty_cf_pages += process_cf_record(conn, cf_number, cf_url, meta_words, True)
+                print(cf_url + ' ' + str(empty_cf_pages))
+
+                empty_cf_page = process_cf_record(conn, cf_number, cf_url, meta_words, process_documents_only)
+
+                if empty_cf_page == 0:
+                    empty_cf_pages = 0
+                else:
+                    empty_cf_pages += empty_cf_page
 
             # If we have found more than 20 consecutive empty pages, break for the year, outer loop
             if empty_cf_pages >= 20:

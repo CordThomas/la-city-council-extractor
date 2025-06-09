@@ -6,7 +6,7 @@ from pathlib import Path
 from pdf2image import pdfinfo_from_path, convert_from_path
 
 base_path = '../documents/'
-years = ['2021', '2022', '2023']
+years = ['2021']
 
 
 def is_locked(file_path):
@@ -83,19 +83,17 @@ def extract(base_path, years):
             if not ('13-0516' in root or '13-0318' in root or '13-1122' in root or '13-0343' in root):
                 for file in files:
                     file_path = join(root, file)
-                    # if exists(file_path[:-4] + '.txt'):
-                    #     print('   skipping, already processed')
-                    # else:
-                    if file_path[-4:].lower() == '.pdf' and not is_locked(file_path):
-                        try:
-                            set_lock(file_path)
+                    if exists(file_path[:-4] + '.txt'):
+                        print('   skipping, already processed')
+                    else:
+                        if file_path[-4:].lower() == '.pdf' and not is_locked(file_path):
                             try:
-                                info = pdfinfo_from_path(file_path)
-                                maxPages = info["Pages"]
-                                if maxPages > 9:
-                                    if not is_processed(file_path):
-                                        set_processed(file_path)
-                                        print('{}: {}'.format(str(maxPages), file_path))
+                                set_lock(file_path)
+                                try:
+                                    info = pdfinfo_from_path(file_path)
+                                    maxPages = info["Pages"]
+                                    print('{}: {}'.format(str(maxPages), file_path))
+                                    if maxPages < 1000:
                                         pages = convert_from_path(file_path, first_page=0, last_page=maxPages)
                                         page_idx = 0
                                         final_file_path = file_path[:-4] + '.txt'
@@ -108,19 +106,18 @@ def extract(base_path, years):
 
                                                 remove(image_file)
                                                 page_idx += 1
+                                    else:
+                                        print('  SKIPPING, TOO BIG FOR NOW')
 
-                                else:
-                                    print('   skipping, smaller than 9 pages')
+                                except Exception as e:
+                                    print(e)
+
+                                remove_lock(file_path)
 
                             except Exception as e:
                                 print(e)
-
-                            remove_lock(file_path)
-
-                        except Exception as e:
-                            print(e)
-                    else:
-                        print('        LOCKED - SKIPPING')
+                        else:
+                            print('        LOCKED - SKIPPING')
 
 
 if __name__ == "__main__":

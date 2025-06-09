@@ -20,8 +20,6 @@ def process_cf_activity(soup, conn, cf_number, process_documents_only=False):
         if table_rows is not None:
             table_row_idx = 0
             for table_row in table_rows:
-                action_date = ''
-                description = ''
                 if table_row_idx > 0:
                     table_cells = table_row.findChildren('td')
                     action_date = table_cells[0].text.strip()

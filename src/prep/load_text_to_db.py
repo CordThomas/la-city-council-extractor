@@ -6,13 +6,17 @@ import os
 import socket
 
 def load_document_list(db_conn):
+    """
+    Load a list of documents that have fewer than 100 pages that have not yet been loaded
+    :param db_conn:
+    :return: list of documents
+    """
 
     sql = 'SELECT "20" || SUBSTRING(cf_number, 1, 2), cf_number, file_name, cd.cf_document_id ' \
           'FROM council_document cd ' \
           'LEFT OUTER JOIN council_document_text ct ' \
           '  ON cd.cf_document_id = ct.cf_document_id ' \
-          'WHERE LOWER(title) IN ("council action", "motion", "speaker card(s)", "communication(s) from public", ' \
-          '"communication from public") or LOWER(title) LIKE "community impact statement submitted by%" ' \
+          'WHERE cd.page_count < 100 ' \
           'AND ct.cf_document_id IS NULL;'
 
     document_list = []
@@ -45,7 +49,7 @@ def load_documents(db_conn, document_list, base_path):
 
 def main():
     """
-    Load the te
+    Load the text to the sqlite database
     """
     hostname = socket.gethostname()
     config = configparser.ConfigParser()

@@ -20,7 +20,7 @@ def retrieve_cf_document(cf_number, path):
 
     cf_year = '20' + cf_number[:2]
     file_location = docs_base + cf_year + '/' + cf_number
-    filename = os.path.basename(path)
+    filename = os.path.basename(path).lower()
     Path(file_location).mkdir(parents=True, exist_ok=True)
 
     download_success = False
@@ -64,9 +64,7 @@ def process_cf_document(soup, conn, cf_number, just_download_file=False):
             # document at table_row_idx - not sure why, so commented that out on 5.27.25
             table_row_idx = 0
             for table_row in table_rows:
-                post_date = ''
-                title = ''
-                document_file_path = ''
+
                 table_cells = table_row.findChildren('td')
                 table_hrefs = table_cells[0].findChildren('a')
                 document_path = table_hrefs[0]['href']
@@ -77,12 +75,10 @@ def process_cf_document(soup, conn, cf_number, just_download_file=False):
 
                 file_name = os.path.basename(document_path)
 
-                if not just_download_file:
-                    document_already_processed = insert_new_council_document(conn, cf_number, post_date,
-                                                                             title, file_name)
+                document_already_processed = insert_new_council_document(conn, cf_number, post_date,
+                                                                         title, file_name)
 
-                if just_download_file or (not document_already_processed):
-                    retrieve_cf_document(cf_number, document_path)
-                # print('Date: {} for title {} with path {}'.format(post_date, title, document_path))
+                retrieve_cf_document(cf_number, document_path)
+                print('Date: {} for title {} with path {}'.format(post_date, title, document_path))
 
                 table_row_idx += 1

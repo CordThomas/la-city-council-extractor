@@ -105,7 +105,7 @@ def insert_new_council_file(conn, cf_num):
     :param cf_num:  Council file number, format a zero-padded yy-nnnn
     """
 
-    sql = ''' INSERT OR IGNORE INTO council_file(cf_number)
+    sql = ''' INSERT OR IGNORE INTO council_file (cf_number)
               VALUES(?) '''
     cur = conn.cursor()
     cur.execute(sql, (cf_num,))
@@ -122,7 +122,7 @@ def insert_new_council_action(conn, cf_num, action_date, description):
     :return: n/a
     """
 
-    sql = ''' INSERT OR IGNORE INTO council_action(cf_number, action_date, description)
+    sql = ''' INSERT OR IGNORE INTO council_action (cf_number, action_date, description)
               VALUES(?, ?, ?) '''
     cur = conn.cursor()
     cur.execute(sql, (cf_num, action_date, description))
@@ -254,7 +254,7 @@ def insert_new_council_document(conn, cf_number, action_date, title, file_name):
     if document_exists(conn, cf_number, file_name):
         return True
     else:
-        sql = ''' INSERT INTO council_document(cf_number, action_date, title, file_name)
+        sql = ''' INSERT OR IGNORE INTO council_document(cf_number, action_date, title, file_name)
                   VALUES(?, ?, ?, ?) '''
         cur = conn.cursor()
         cur.execute(sql, (cf_number, action_date, title, file_name))

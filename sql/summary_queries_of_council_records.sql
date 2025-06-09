@@ -265,3 +265,176 @@ FROM legislative_topic lt JOIN council_file_legislative_topic flt on lt.topic_id
   JOIN council_district_member dm on cf.mover = dm.mover_name
   WHERE LENGTH(cf.mover) > 0 AND LENGTH(dm.end_date) = 0
   GROUP BY  lt.topic_label, dm.name_last, dm.name_first, dm.district_n;
+  
+SELECT  SUBSTRING(Action_date, 7, 4), SUBSTRING(Action_date, 1, 2), SUBSTRING(Action_date, 4, 2)
+FROM council_action
+ORDER BY SUBSTRING(Action_date, 7, 4) Desc, SUBSTRING(Action_date, 1, 2) Desc, SUBSTRING(Action_date, 4, 2) Desc;
+
+SELECT LENGTH(Topic_keyphrase)
+FROM legislative_topic
+ORDER BY LENGTH(Topic_keyphrase) DESC;
+
+SELECT Action_Date from council_document;
+
+SELECT CF_Number, COUNT(*) AS Frequency
+FROM council_vote
+GROUP BY CF_NUMBER
+ORDER BY Frequency DESC
+
+SELECT *
+FROM council_action
+WHERE cf_number = "23-0004";
+
+CREATE TABLE council_vote_result_temp (
+    council_vote_result_id    INTEGER PRIMARY KEY AUTOINCREMENT,
+    cf_number        STRING (10),
+    council_district INT,
+    council_member   TEXT (40),
+    vote             TEXT (10)
+);
+
+INSERT INTO council_vote_result_temp (cf_number, council_district, council_member, vote)
+SELECT cf_number, council_district, council_member, vote
+FROM council_vote_result;
+
+CREATE TABLE council_document_text (
+    cf_document_id INT REFERENCES council_document (cf_document_id),
+    cf_document_text TEXT
+ );
+ 
+SELECT cf_number, council_district
+From council_file
+WHERE ;
+
+SELECT cf_number, count(*) AS FREQUENCY
+FROM council_vote
+GROUP BY cf_number
+ORDER BY FREQUENCY DESC;
+
+SELECT cf_number, council_district
+FROM council_file 
+WHERE council_district IS NOT NULL AND LENGTH(council_district) > 0;
+          
+
+SELECT * FROM council_file_district;
+SELECT * FROM council_district_member;
+
+SELECT *
+FROM legislative_topic
+WHERE topic_label IN ("homeless", "housing");
+
+DELETE FROM legislative_topic
+WHERE topic_id = "26";
+
+DELETE FROM council_file_legislative_topic
+WHERE topic_id = "26";
+
+SELECT SUBSTRING(cf_number, 1, 2) AS CF_YEAR, COUNT(*)
+FROM council_document
+GROUP BY CF_YEAR;
+
+SELECT cf_number, count(*) AS MotionCount
+FROM council_document
+WHERE LOWER(title) = "motion"
+GROUP BY cf_number
+ORDER BY MotionCount DESC;
+
+SELECT cf_number, count(*) AS MotionCount
+FROM council_document
+WHERE LOWER(title) = "motion"
+GROUP BY cf_number
+ORDER BY MotionCount DESC;
+
+SELECT "20" || SUBSTRING(cf_number, 1, 2), cf_number, file_name
+FROM council_document cd
+LEFT OUTER JOIN council_document_text ct 
+  ON cd.cf_document_id = ct.cf_document_id 
+WHERE LOWER(title) IN ("council action", "motion", "speaker card(s)", "communication(s) from public", "communication from public") or LOWER(title) LIKE "community impact statement submitted by%"
+AND ct.cf_document_id IS NULL;
+
+SELECT * FROM council_document
+WHERE page_count IS NOT NULL;
+
+SELECT *
+FROM council_file
+WHERE SUBSTR(cf_number, 1, 2) = "25"
+ORDER BY cf_number;
+
+/*DELETE FROM council_file
+WHERE SUBSTR(cf_number, 1, 2) = "21"
+AND date_received IS NULL
+ORDER BY cf_number;*/
+
+
+
+SELECT *
+FROM council_document
+WHERE SUBSTR(cf_number, 1, 2) = "23"
+ORDER BY cf_number DESC;
+
+SELECT cf.cf_number, cd.file_name
+FROM council_file cf LEFT OUTER JOIN council_document cd on cf.cf_number = cd.cf_number
+WHERE SUBSTR(cf.cf_number, 1, 2) = "21" --AND cd.file_name IS NULL
+ORDER BY cf.cf_number DESC;
+
+SELECT cf.cf_number, ca.description
+FROM council_file cf LEFT OUTER JOIN council_action ca on cf.cf_number = ca.cf_number
+WHERE SUBSTR(cf.cf_number, 1, 2) = "21"
+ORDER BY cf.cf_number DESC;
+
+SELECT cf.cf_number, ca.description
+FROM council_file cf LEFT OUTER JOIN council_action ca on cf.cf_number = ca.cf_number
+WHERE cf.cf_number = "21-0305"
+ORDER BY cf.cf_number DESC;
+
+SELECT cf.cf_number, cv.vote_action
+FROM council_file cf LEFT OUTER JOIN council_vote cv on cf.cf_number = cv.cf_number
+WHERE SUBSTR(cf.cf_number, 1, 2) = "21"
+ORDER BY cf.cf_number DESC;
+
+SELECT *
+FROM council_document
+WHERE file_name = "21-0003_misc_12-8-21.pdf";
+SELECT *
+FROM council_document_text;
+
+-- Some QA scripts to make sure we have no duplicate records
+
+SELECT cf_number, count(*) AS FREQUENCY
+FROM council_file
+GROUP BY cf_number HAVING FREQUENCY > 1;
+
+SELECT cf_number, action_date, description, count(*) AS FREQUENCY
+FROM council_action
+GROUP BY cf_number, action_date, description
+HAVING FREQUENCY > 1;
+
+--delete   from council_action
+--where    rowid not in
+--         (
+--         select  min(rowid)
+--         from    council_action
+--         group by
+--                 cf_number, action_date, description
+--         );
+
+SELECT cf_number, action_date, file_name, count(*) AS FREQUENCY
+FROM council_document
+GROUP BY cf_number, action_date, file_name
+HAVING FREQUENCY > 1;
+
+--DELETE FROM council_document_text;
+--
+--delete   from council_document
+--where    rowid not in
+--         (
+--         select  min(rowid)
+--         from    council_document
+--         group by
+--                 cf_number, action_date, file_name
+--         );
+
+SELECT cf_number, meeting_date, vote_action, count(*) AS FREQUENCY
+FROM council_vote
+GROUP BY cf_number, meeting_date, vote_action
+HAVING FREQUENCY > 1;
