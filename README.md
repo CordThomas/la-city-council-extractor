@@ -125,7 +125,7 @@ the pdf council documents - this is taking a while - so check back soon.
 ## Management and Sharing Online
 
 I have looked around for a lightweight means to publish and manage the data collected from the 
-council database. I found [https://jampyapplicationbuilder.pages.dev/](Jam.py) after casually looking for 
+council database. I found [Jam.py](https://jampyapplicationbuilder.com/) after casually looking for 
 several years. This project is a web-based platform for constructing interactive and event-driven web applications.
 I am just starting but looking forward to publishing something online soon so people can interact 
 with graphs of how the City Council and our Council Members operate, cooperate and make our collective lives better.
