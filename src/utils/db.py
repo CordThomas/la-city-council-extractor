@@ -1,5 +1,3 @@
-import sqlite3
-from sqlite3 import Error
 from las_utils import database_utils as dbu
 
 def clean_field_for_database(db_field, rectext):
@@ -19,22 +17,7 @@ def clean_field_for_database(db_field, rectext):
     return rectext
 
 
-def create_connection(db_file):
-    """ create a database connection to the SQLite database
-        specified by db_file
-    :param db_file: Relative or fully qualified path to the database file
-    :return: Connection object or None
-    """
-    conn = None
-    try:
-        conn = sqlite3.connect(db_file)
-    except Error as e:
-        print(e)
-
-    return conn
-
-
-def counfil_file_exists(conn, cf_num):
+def council_file_exists(conn, cf_num):
     """
     Check whether we already have this council file
     :param conn:  Active database connection
@@ -112,6 +95,19 @@ def insert_new_council_file(conn, cf_num):
     conn.commit()
 
 
+def delete_council_actions(conn, cf_number):
+    """
+    Delete all council actions for a given council file
+    :param conn: Active database connection
+    :param cf_number: Council file number, format a zero-padded yy-nnnn
+    :return: Nothing
+    """
+
+    cur = conn.cursor()
+    sql = '''DELETE FROM council_action WHERE cf_number=?;'''
+    cur.execute(sql, (cf_number, ))
+
+
 def insert_new_council_action(conn, cf_num, action_date, description):
     """
     Insert a council action
@@ -122,8 +118,8 @@ def insert_new_council_action(conn, cf_num, action_date, description):
     :return: n/a
     """
 
-    sql = ''' INSERT OR IGNORE INTO council_action (cf_number, action_date, description)
-              VALUES(?, ?, ?) '''
+    sql = '''INSERT OR IGNORE INTO council_action (cf_number, action_date, description)
+              VALUES(?, ?, ?);'''
     cur = conn.cursor()
     cur.execute(sql, (cf_num, action_date, description))
     conn.commit()
@@ -142,12 +138,14 @@ def insert_or_update(conn, cf_num, key, value):
     :param conn:  Active database connection
     :param cf_num:  Council file number, format a zero-padded yy-nnnn
     :param key:  The field name to be set or update
-    :parem value:  The value to set for the field
+    :param value:  The value to set for the field
+    :return: n/a
     """
-    sql = ''' INSERT OR REPLACE INTO council_file (cf_number, {field})
-              VALUES({cf_num},
-              COALLESCE((SELECT {field} FROM meta WHERE cf_number = {cf_num}), 'blank')
-              ); '''
+
+    sql = '''INSERT OR REPLACE INTO council_file (cf_number, {field})
+             VALUES({cf_num},
+             COALLESCE((SELECT {field} FROM meta WHERE cf_number = {cf_num}), 'blank')); '''
+
     sql.format(field=key, cf_num=cf_num)
     cur = conn.cursor()
     cur.execute(sql)
@@ -163,7 +161,7 @@ def update_council_file_field(conn, cf_num, key, value):
     :param value:  The value to set for the field
     """
     sql = ''' UPDATE council_file SET {field} = ?
-              WHERE cf_number = ? '''
+              WHERE cf_number = ?; '''
     sql_exec = sql.format(field=key)
     # print(sql_exec)
     cur = conn.cursor()
@@ -199,7 +197,7 @@ def insert_vote(conn, cf_num, vote_date, vote_type, vote_action):
     """
 
     sql = ''' INSERT INTO council_vote(cf_number, meeting_date, meeting_type, vote_action)
-              VALUES(?, ?, ?, ?) '''
+              VALUES(?, ?, ?, ?);'''
     cur = conn.cursor()
     cur.execute(sql, (cf_num, vote_date, vote_type, vote_action))
     conn.commit()
@@ -216,7 +214,7 @@ def insert_vote_result(conn, cf_num, council_member, council_district, vote):
     """
 
     sql = ''' INSERT INTO council_vote_result(cf_number, council_district, council_member, vote)
-              VALUES(?, ?, ?, ?) '''
+              VALUES(?, ?, ?, ?); '''
     cur = conn.cursor()
     cur.execute(sql, (cf_num, int(council_district), council_member, vote))
     conn.commit()
@@ -230,7 +228,7 @@ def document_exists(conn, cf_num, file_name):
     :param file_name:  Document file name
     :return: True if exists
     """
-    sql = 'SELECT cf_number, file_name FROM council_document WHERE cf_number = ? and file_name = ?'
+    sql = 'SELECT cf_number, file_name FROM council_document WHERE cf_number = ? and file_name = ?;'
     cur = conn.cursor()
     cur.execute(sql, (cf_num, file_name))
     data = cur.fetchone()
@@ -255,7 +253,7 @@ def insert_new_council_document(conn, cf_number, action_date, title, file_name):
         return True
     else:
         sql = ''' INSERT OR IGNORE INTO council_document(cf_number, action_date, title, file_name)
-                  VALUES(?, ?, ?, ?) '''
+                  VALUES(?, ?, ?, ?);'''
         cur = conn.cursor()
         cur.execute(sql, (cf_number, action_date, title, file_name))
         conn.commit()
@@ -272,7 +270,7 @@ def get_council_motion_documents(conn):
     sql = 'select cf.cf_number, cf.date_received, replace(cd.file_name, \'.pdf\', \'.txt\') ' \
           'from council_document cd ' \
           'join council_file cf on cd.cf_number = cf.cf_number ' \
-          'where cd.title = \'Motion\''
+          'where cd.title = "Motion";'
 
     cur = conn.cursor()
     for row in cur.execute(sql):
@@ -297,7 +295,29 @@ def insert_council_distance_entry(conn, council_district_1, council_district_2, 
     :return: Nothing
     """
 
-    sql = 'insert into council_distance_matrix (council_n1, council_n2, distance) values (?, ?, ?)'
+    sql = 'insert into council_distance_matrix (council_n1, council_n2, distance) values (?, ?, ?);'
     cur = conn.cursor()
     cur.execute(sql, (council_district_1, council_district_2, distance))
     conn.commit()
+
+
+def load_document_text(db_conn):
+    """
+    Load the document text into a dictionary with the document_id as the key
+    :param db_conn: Active database connection
+    :return: Dictionary of doc[id] = doc_text
+    """
+
+    sql = 'SELECT cdt.cf_document_id, cdt.cf_document_text ' \
+          'FROM council_document_text cdt ' \
+          'JOIN council_document cd on cdt.cf_document_id = cd.cf_document_id ' \
+          'JOIN council_file cf on cd.cf_number = cf.cf_number ' \
+          'WHERE cd.title = "Motion"'
+
+    documents = {}
+    docs = dbu.select(db_conn, sql)
+
+    for doc in docs:
+        documents[doc[0]] = doc[1]
+
+    return documents

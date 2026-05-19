@@ -18,6 +18,7 @@ from scrape_cf_votes import *
 from scrape_cf_activity import *
 from scrape_cf_documents import *
 from las_utils import system_utils as sysu
+from las_utils import database_utils as dbu
 from utils.db import *
 
 # tell urllib to ignore SSL warnings - another approach would be to
@@ -26,7 +27,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 db_file = '../data/city-council.db'
 
 
-def process_cf_record(conn, cf_number, cf_url, meta_words, process_documents_only=False):
+def process_cf_record(conn, cf_number, cf_url, process_documents_only=False):
     """ Loop over the collection of years of interest (we ran from 2010 to
     2021 inclusive) and the number of council file records (varies considerably
     from year to year with nearly 2,200 in 2012 to only 1,400 in other years).
@@ -40,8 +41,8 @@ def process_cf_record(conn, cf_number, cf_url, meta_words, process_documents_onl
     list vs the list of files and links.
 
     :param conn:  Active database connection
-    :param cf_url_base:  The base URL for the council file data page
-    :param cf_item_pattern:  The year-file pattern compiled in this method to complete the URL
+    :param cf_number:  The council file record number, e.g., 20-0435
+    :param cf_url: The full URL of the council file page, e.g., https://cityclerk.lacity.org/lacityclerkconnect/index.cfm?fa=ccfi.viewrecord&cfnumber=20-0435
     :param process_documents_only: To get the historical documents or documents we might have missed, set to True
     """
 
@@ -63,16 +64,16 @@ def process_cf_record(conn, cf_number, cf_url, meta_words, process_documents_onl
             if not process_documents_only:
                 insert_new_council_file(conn, cf_number)
 
-            empty_cf_page, is_update = process_cf_council_file(soup, meta_words, conn, cf_number,
+            empty_cf_page, is_update = process_cf_council_file(soup, conn, cf_number,
                                                                process_documents_only)
 
             erl = 3
             if empty_cf_page != 0:
                 return empty_cf_page
-            elif is_update in ['new', 'update']:
+            else:
                 process_cf_votes(soup, conn, cf_number, process_documents_only, True)
                 erl = 4
-                process_cf_activity(soup, conn, cf_number, process_documents_only)
+                process_cf_activity(soup, conn, cf_number, process_documents_only, True)
                 erl = 5
 
             process_cf_document(soup, conn, cf_number, process_documents_only)
@@ -117,9 +118,9 @@ def process_cf_records(conn, cf_url_base, cf_item_pattern):
     meta_words = []
     process_documents_only = False
     this_year = datetime.date.today().year
-    first_year = 2011 - 1
+    first_year = this_year - 1
     begin_processing = True
-    for year in range(2017, 2020):
+    for year in range(2010, 2020):
     # for year in range(first_year, this_year + 1):
         empty_cf_pages = 0
         for cf in range(1, 4000):
@@ -128,7 +129,7 @@ def process_cf_records(conn, cf_url_base, cf_item_pattern):
             if begin_processing:
                 print(cf_url + ' ' + str(empty_cf_pages))
 
-                empty_cf_page = process_cf_record(conn, cf_number, cf_url, meta_words, process_documents_only)
+                empty_cf_page = process_cf_record(conn, cf_number, cf_url, process_documents_only)
 
                 if empty_cf_page == 0:
                     empty_cf_pages = 0
@@ -162,7 +163,7 @@ def main():
     config_section = sysu.get_config_section(hostname)
     db_file = config['Locations.{}'.format(config_section)]['db_path']
 
-    db_conn = create_connection(db_file)
+    db_conn = dbu.create_connection(db_file)
 
     cf_url_base = 'https://cityclerk.lacity.org/lacityclerkconnect/index.cfm?fa=ccfi.viewrecord&cfnumber='
     cf_item_pattern = '{year}-{item}'

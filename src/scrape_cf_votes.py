@@ -45,7 +45,8 @@ def process_cf_votes(soup, db_conn, cf_number, process_documents_only=False, ove
 
         insert_vote(db_conn, cf_number, vote_date, vote_type, vote_action)
 
-    vote_by_council = soup.find('table', attrs={'id': 'inscrolltbl', 'border': '0'})
+    vote_by_council = (soup.find('table', attrs={'class': 'inscrolltbl', 'border': '0'}) or
+                       soup.find('table', attrs={'id': 'inscrolltbl', 'border': '0'}))
     # If the motion has been voted on, there will be a summary table
     if vote_by_council is not None:
         vt_rows = vote_by_council.find_all('tr', attrs={'class': ['rowcolor2', 'rowcolor3']})

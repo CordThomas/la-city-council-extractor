@@ -106,8 +106,8 @@ def check_if_update(db_conn, cf_number, soup):
     :param soup:  The BeautifulSoup object for the council file page
     :return:
     """
-    council_file_exists, date_last_changed = counfil_file_exists(db_conn, cf_number)
-    if not council_file_exists:
+    council_file_already_exists, date_last_changed = council_file_exists(db_conn, cf_number)
+    if not council_file_already_exists:
         print('==== We have a new record')
         return 'new'
     else:
@@ -120,16 +120,13 @@ def check_if_update(db_conn, cf_number, soup):
     return ''
 
 
-def parse_section(db_conn, cf_number, section, meta_words):
+def parse_section(db_conn, cf_number, section):
     """ Parse the section of the council file meta information to
     extract the field label and field text.  The HTML has a variety of
     formats.  The method should process all permutations.
     :param db_conn:  The database connection handle
     :param cf_number:  Council file number, format a zero-padded yy-nnnn
     :param section:  The HTML section from which to extract the label and value
-    :param meta_words:  The list used to track all the possible field names; should
-    be part of a separate method or even preprocesing script to create the structure
-    of the database table schema.
     """
     reclabel = ''
     rectext = ''
@@ -157,22 +154,17 @@ def parse_section(db_conn, cf_number, section, meta_words):
                             pass
 
             if reclabel is not None and len(reclabel) > 0 and rectext is not None and len(rectext) > 0:
-                # if reclabel not in meta_words:
-                #     meta_words.append(reclabel)
-                # if 'Date' in reclabel:
+
                 process_record(db_conn, cf_number, reclabel, rectext)
                 reclabel = ''
                 rectext = ''
 
 
-def process_cf_council_file(soup, meta_words, db_conn, cf_number, process_documents_only=False):
+def process_cf_council_file(soup, db_conn, cf_number, process_documents_only=False):
     """ Process the council_file meta data section of the page
     :param soup:  The BeautifulSoup object for the council file page
     :param db_conn:  The database connection handle
     :param cf_number:  Council file number, format a zero-padded yy-nnnn
-    :param meta_words:  The list used to track all the possible field names; should
-    be part of a separate method or even preprocesing script to create the structure
-    of the database table schema.
     :param process_documents_only: To get the historical documents or documents we might have missed, set to True
     :return missing_sections, is_update:  Returns whether the council file page is
      missing sections (1).   If not, this suggests the page was empty - there
@@ -199,6 +191,6 @@ def process_cf_council_file(soup, meta_words, db_conn, cf_number, process_docume
                     break
                 # If we have a set of children we know we have content
                 if len(section) > 1:
-                    parse_section(db_conn, cf_number, section, meta_words)
+                    parse_section(db_conn, cf_number, section)
 
     return missing_sections, is_update

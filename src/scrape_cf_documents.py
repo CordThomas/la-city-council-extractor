@@ -26,7 +26,8 @@ def retrieve_cf_document(cf_number, path):
     download_success = False
     attempt_count = 0
 
-    if not os.path.exists(file_location + '/' + filename):
+    if (not os.path.exists(file_location + '/' + filename) and
+            not os.path.exists(file_location + '/' + filename[:-4] + '.txt')):
         while not download_success and attempt_count < 5:
             try:
                 r = requests.get(path, stream=True, timeout=(5, 15))
